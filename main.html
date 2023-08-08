@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer with Timer</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #container { position: relative; height: 100vh; width: 100%; }
+        #pdfViewer { width: 100%; height: 100%; }
+        #controls { position: absolute; bottom: 10px; right: 30px; font-size: 2rem; }
+        #time-container { text-align: right }
+        #time { background-color: white; padding: 5px 5px; }
+        button { padding: 5px 10px; }
+        #loadButton { position: absolute; top: 10px; left: 10px; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <button id="loadButton" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+        <input type="file" accept=".pdf" id="fileInput" style="display: none;" />
+        <embed id="pdfViewer" type="application/pdf" style="display: none;">
+        <div id="controls">
+            <div id="time-container"><span id="time">10:00</span></div>
+            <button id="startStop">Start</button>
+            <button id="reset">Reset</button>
+        </div>
+    </div>
+    <script>
+        const TARGET_TIME = 10 * 60; // 10 minutes in seconds
+
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            var objectURL = URL.createObjectURL(file);
+            document.getElementById('pdfViewer').setAttribute('src', objectURL);
+            document.getElementById('loadButton').style.display = 'none'; // Hide load button
+            document.getElementById('pdfViewer').style.display = 'block'; // Show PDF viewer
+        });
+
+        var timer;
+        var timeRemaining = TARGET_TIME;
+        var isRunning = false;
+
+        document.getElementById('startStop').addEventListener('click', function () {
+            if (isRunning) {
+                clearInterval(timer);
+                this.textContent = 'Start';
+            } else {
+                this.textContent = 'Stop';
+                timer = setInterval(function () {
+                    timeRemaining -= 1;
+                    updateDisplay();
+                    if (timeRemaining <= 0) {
+                        clearInterval(timer);
+                    }
+                }, 1000);
+            }
+            isRunning = !isRunning;
+        });
+
+        document.getElementById('reset').addEventListener('click', function () {
+            timeRemaining = TARGET_TIME;
+            updateDisplay();
+            clearInterval(timer);
+            document.getElementById('startStop').textContent = 'Start';
+            isRunning = false;
+        });
+
+        function updateDisplay() {
+            var minutes = Math.floor(timeRemaining / 60);
+            var seconds = timeRemaining % 60;
+            var timeElement = document.getElementById('time');
+            timeElement.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            if (timeRemaining <= 60) {
+                timeElement.style.color = 'red';
+            } else {
+                timeElement.style.color = 'black';
+            }
+        }
+    </script>
+</body>
+</html>
